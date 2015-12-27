@@ -22,9 +22,14 @@ Subsequent times:
 
 Caveats and other notes:
 
-* The device passed to the container should be that of the connected microbit
+* The device passed to the container should be that of the connected micro:bit.
+  "/dev/ttyACM0" appears to be the default name on both Ubuntu and Fedora, but
+  it presumably may differ based on operating system and other connected devices
+* The Docker daemon will complain about "error gathering device information" if
+  the micro:bit isn't plugged in
 * If you destroy the container and create a new one, this can confuse yotta's
-  session authentication with the online components of the service
+  session authentication with the online components of the service. Running
+  `yt logout` from inside the new container should resolve the problem
 * You may want to also mount a host directory for ease of transferring files
   into and out of the container
 
@@ -35,7 +40,7 @@ These steps aren't included in the image build process due to the web service
 login requirements and the need to sign up to the BBC micro:bit NDA to access
 some of the repositories prior to the official launch.
 
-    yt target bbc-microbit-classic-gcc
+    yt target bbc-microbit-classic-gcc-nosd
 
 This will complain and present a login link for yotta.mbed.com. You will need
 to create an mbed.com account and login via a browser on the container host -
@@ -75,6 +80,12 @@ TODO
 * cover using ./tools/makecombinedhex.py to have a file run on startup
   (replacing the MicroPython REPL)
 
+Rebuilding the image
+--------------------
+
+From the devenv directory:
+
+    docker build --tag ncoghlan/microbit-dev .
 
 Acknowledgements
 ----------------
