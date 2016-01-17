@@ -7,14 +7,20 @@ RUN apt-get -y install software-properties-common && \
     apt-get -y install cmake ninja-build gcc-arm-none-eabi srecord \
                        build-essential libffi-dev libssl-dev \
                        python3-setuptools python3-pip git screen
-# Packages that shouldn't be needed, but are useful for now...
-RUN apt-get -y install vim python
+# Additional packages being considered for inclusion
+RUN apt-get -y install vim python usbutils pmount
 # Set up a dedicated development user
-RUN groupadd microbitdev && useradd -m -g microbitdev microbitdev
+# The supplementary group IDs added are dialout on Fedora (18) and Ubuntu (20)
+# That matters, since the group ID for devices is set by the container *host*
+RUN groupadd microbitdev && \
+    groupadd -g 18 dialout-fedora-host && \
+    useradd -m -g microbitdev -G dialout,dialout-fedora-host microbitdev
 USER microbitdev
 ENV LANG=C.UTF-8
 RUN pip3 install --user --upgrade pip setuptools wheel
-RUN pip3 install --user yotta
+# See https://github.com/ntoll/microrepl/pull/6
+RUN pip3 install --user 'pyserial<3.0'
+RUN pip3 install --user yotta microrepl
 ENV PATH $PATH:/home/microbitdev/.local/bin
 WORKDIR /home/microbitdev
 # Print a user-modifiable prompt when launching
