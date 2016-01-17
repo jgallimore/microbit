@@ -6,42 +6,15 @@ MicroPython on the BBC micro:bit (see Nicholas Tollervey's
 [write-up](http://ntoll.org/article/story-micropython-on-microbit)
 for details).
 
-It uses two key components to achieve this:
-
-* Nicholas Tollervey's ["microrepl"](https://github.com/ntoll/microrepl)
-  environment to interact with a MicroPython REPL installed on an attached
-  micro:bit
-* The `ncoghlan/microbit-dev` Docker image defined in this repo to build new
-  MicroPython based firmware images for the micro:bit
-
-The latter was created by Nick Coghlan as part of the
+It was created by Nick Coghlan as part of the
 [micro:bit World Tour](https://microworldtour.github.io/about.html).
 
-
-Using the micro:bit interactively
----------------------------------
-
-First, you'll need to install the `microrepl` project:
-
-    pip install --user 'pyserial<3.0' microrepl
-
-(If you're already familiar with Python's virtual environments, you may choose
-to use one of those, rather than a user level installation)
-
-Building new images for the micro:bit
--------------------------------------
-
-`ncoghlan/microbit-dev` is an Ubuntu 14.04 based image hosting a local copy of
-the `yotta` build system for ARM's mBed platform. Built images are extracted
-from the container using `docker exec`, and then copied to the micro:bit via
-its USB mass storage interface.
-
 Starting the container
-~~~~~~~~~~~~~~~~~~~~~~
+----------------------
 
 First time:
 
-    docker run -it --name=microbit ncoghlan/microbit-dev
+    docker run -it --device=/dev/ttyACM0 --name=microbit ncoghlan/microbit-dev
 
 Subsequent times:
 
@@ -57,14 +30,33 @@ repository.
 
 Caveats and other notes:
 
+* The device passed to the container should be that of the connected micro:bit.
+  "/dev/ttyACM0" appears to be the default name on both Ubuntu and Fedora, but
+  it presumably may differ based on operating system and other connected devices
+* The Docker daemon will complain about "error gathering device information" if
+  the micro:bit isn't plugged in
 * If you destroy the container and create a new one, this can confuse yotta's
   session authentication with the online components of the service. Running
   `yt logout` from inside the new container should resolve the problem
 * You may want to also mount a host directory for ease of transferring files
   into and out of the container
 
+
+Interacting with the micro:bit
+------------------------------
+
+From within the container, run the `microrepl` command:
+
+    microrepl
+
+This runs Nicholas Tollervey's [microrepl](https://github.com/ntoll/microrepl/)
+project to provide an interactive REPL for the MicroPython interpreter running
+on the micro:bit. (If you don't currently have MicroPython, see the README in
+the microrepl project for installation instructions)
+
+
 Setting up the compiler
-~~~~~~~~~~~~~~~~~~~~~~~
+-----------------------
 
 The following steps aren't included in the image build process due to the web
 service login requirements and the need to sign up to the BBC micro:bit NDA to
@@ -97,25 +89,28 @@ this will want you to log into GitHub as well. Refer to
 details on the microbit-dal repository that is still subject to NDA
 requirements.
 
-(To be continued?...)
-
 Building and installing programs
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+--------------------------------
 
 With the target set and all dependencies installed, MicroPython can be built
 for the MicroBit with the following command:
 
     ~/micropython$ yt build
 
-
-
 (To be continued...)
+
+Once a firmware image has been built inside the container, it can be copied
+out to the host using `docker exec`:
+
+    sudo docker exec microbit cat build/bbc-microbit-classic-gcc-nosd/source/microbit-micropython.hex > /run/media/ncoghlan/MICROBIT/firmware.hex
+
+(That example copies a built MicroPython image directly to the USB mass storage
+interface of the MicroBit connected to my Fedora system)
 
 TODO
 ----
 
 * cover building and installing the default Micropython hex file
-* add screen to the image, show setting up a REPL session
 * cover using ./tools/pyboard.py to run files directly
 * cover using ./tools/makecombinedhex.py to have a file run on startup
   (replacing the MicroPython REPL)
@@ -129,7 +124,7 @@ Clone this repo, and then run from the devenv directory:
 
 The image can be made easier to use later by applying a suitable tag, like
 `--tag ncoghlan/microbit-dev` (which is the tag used for the images pushed to
-DockerHub).
+DockerHub)
 
 
 Acknowledgements
