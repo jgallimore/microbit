@@ -37,9 +37,12 @@ Caveats and other notes:
   the micro:bit isn't plugged in
 * If you destroy the container and create a new one, this can confuse yotta's
   session authentication with the online components of the service. Running
-  `yt logout` from inside the new container should resolve the problem
-* You may want to also mount a host directory for ease of transferring files
-  into and out of the container
+  `yt logout` from inside the new container should resolve the problem (the
+  next `yt up` will prompt you to log in again)
+* Refer to the "Building and installing programs" for how to copy files out
+  of the container without needing to mount a host directory first. However,
+  you may still want to mount a host directory containing source files for
+  custom firmware images.
 
 
 Interacting with the micro:bit
@@ -60,7 +63,7 @@ Setting up the compiler
 
 The following steps aren't included in the image build process due to the web
 service login requirements and the need to sign up to the BBC micro:bit NDA to
-access some of the repositories prior to the official launch.
+access the Device Access Layer (DAL) repository prior to the official launch.
 
 The first step is to configure the appropriate system target in the
 container:
@@ -89,6 +92,9 @@ this will want you to log into GitHub as well. Refer to
 details on the microbit-dal repository that is still subject to NDA
 requirements.
 
+The container image is set up to display these two instructions every time a
+new `bash` session starts (including via `docker run` and `docker start`)
+
 Building and installing programs
 --------------------------------
 
@@ -97,23 +103,26 @@ for the MicroBit with the following command:
 
     ~/micropython$ yt build
 
-(To be continued...)
+The various build artifacts are saved at
+`build/bbc-microbit-classic-gcc-nosd/source/`.
 
 Once a firmware image has been built inside the container, it can be copied
-out to the host using `docker exec`:
+out to the host using `docker exec`, `cat` and a shell pipe on the host:
 
-    sudo docker exec microbit cat build/bbc-microbit-classic-gcc-nosd/source/microbit-micropython.hex > /run/media/ncoghlan/MICROBIT/firmware.hex
+    docker exec microbit cat build/bbc-microbit-classic-gcc-nosd/source/microbit-micropython.hex > /run/media/ncoghlan/MICROBIT/firmware.hex
 
 (That example copies a built MicroPython image directly to the USB mass storage
 interface of the MicroBit connected to my Fedora system)
 
-TODO
-----
+Combined images created with `tools/makecombinedhex.py` can be copied out of
+the build container in the same way.
 
-* cover building and installing the default Micropython hex file
-* cover using ./tools/pyboard.py to run files directly
-* cover using ./tools/makecombinedhex.py to have a file run on startup
-  (replacing the MicroPython REPL)
+
+Known issues
+------------
+
+* `./tools/pyboard.py` currently emits an ioctl error when run in the container:
+   https://github.com/bbcmicrobit/micropython/issues/156
 
 Rebuilding the image
 --------------------
@@ -131,6 +140,7 @@ Acknowledgements
 ----------------
 
 * Everyone involved in the creation of the BBC microbit project
+* Damien George for creating the MicroPython project
 * Nicholas Tollervey for getting the BBC microbit NDA partially lifted for
   easier community collaboration and setting up the micro:bit World Tour
   project

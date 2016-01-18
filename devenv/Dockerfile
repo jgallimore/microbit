@@ -1,4 +1,5 @@
 FROM ubuntu:14.04
+# Future: Use F24 base image: https://fedoraproject.org/wiki/Changes/Micro_Bit
 RUN apt-get -y install software-properties-common && \
     add-apt-repository -y ppa:terry.guo/gcc-arm-embedded && \
     add-apt-repository -y ppa:pmiller-opensource/ppa && \
@@ -6,11 +7,11 @@ RUN apt-get -y install software-properties-common && \
     apt-get -y remove binutils-arm-none-eabi gcc-arm-none-eabi && \
     apt-get -y install cmake ninja-build gcc-arm-none-eabi srecord \
                        build-essential libffi-dev libssl-dev \
-                       python3-setuptools python3-pip git screen
-# Additional packages being considered for inclusion
-RUN apt-get -y install vim python usbutils pmount
+                       python3-setuptools python3-pip git
+# Additional packages that could potentially be removed...
+RUN apt-get -y install vim python
 # Set up a dedicated development user
-# The supplementary group IDs added are dialout on Fedora (18) and Ubuntu (20)
+# The supplementary group IDs added are dialout on Fedora (g18) & Ubuntu (g20)
 # That matters, since the group ID for devices is set by the container *host*
 RUN groupadd microbitdev && \
     groupadd -g 18 dialout-fedora-host && \
