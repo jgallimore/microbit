@@ -117,12 +117,14 @@ interface of the MicroBit connected to my Fedora system)
 Combined images created with `tools/makecombinedhex.py` can be copied out of
 the build container in the same way.
 
+To run a Python script on the board directly without making a new firmware
+image first, you can use `tools/pyboard.py`:
 
-Known issues
-------------
+    ~/micropython$ python3 tools/pyboard.py /dev/ttyACM0 examples/conway.py
 
-* `./tools/pyboard.py` currently emits an ioctl error when run in the container:
-   https://github.com/bbcmicrobit/micropython/issues/156
+(The command currently needs to be run explicitly under Python 3, as there
+isn't a virtual environment activated in the container by default, and
+`pyserial` is only installed into the user site directory for Python 3)
 
 Rebuilding the image
 --------------------
